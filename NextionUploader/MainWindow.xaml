@@ -1,0 +1,38 @@
+﻿<Window x:Class="NextionUploader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NextionUploader"
+        Title="Nextion Uploader"
+        mc:Ignorable="d"
+         Height="350" Width="525">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="80" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Label VerticalAlignment="Center">TFT File</Label>
+        <ComboBox Width="200" Margin="5" ItemsSource="{Binding Path=Files}" SelectedItem="{Binding Path=SelectedFile}" Grid.Column="1" Grid.ColumnSpan="5" VerticalAlignment="Center" HorizontalAlignment="Left"></ComboBox>
+        <Label VerticalAlignment="Center" Grid.Row="1">Serial port</Label>
+        <ComboBox Width="100" Margin="5" ItemsSource="{Binding Path=ComPorts}" SelectedItem="{Binding Path=SelectedComPort}" Grid.Column="1" VerticalAlignment="Center" Grid.Row="1"></ComboBox>
+        <Button  Margin="5" Click="btnUpload_Click" x:Name="btnUpload" Grid.Row="1" Grid.Column="4" HorizontalAlignment="Right" Padding="15,3">UPLOAD</Button>
+
+        <TextBox IsReadOnly="True" Grid.Row="2" Grid.ColumnSpan="4" VerticalScrollBarVisibility="Visible" Margin="5" Text="{Binding Path=MessageLog}">
+        </TextBox>
+        <Grid  Grid.Row="3" Grid.ColumnSpan="4" Margin="5">
+            <ProgressBar Maximum="1" Height="20" Value="{Binding UploadProgress}" Grid.Column="0"></ProgressBar>
+            <Label Grid.Row="3" Grid.ColumnSpan="4" HorizontalAlignment="Center" Content="{Binding Path=UploadProgress}" ContentStringFormat=" {0:0%}" Grid.Column="0">
+            </Label>
+        </Grid>
+    </Grid>
+</Window>

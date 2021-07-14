@@ -22,13 +22,5 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DD0F3D94-E8BB-44CA-A414-E78A9F0F76A7}
 	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 2
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://zegreatclan.visualstudio.com/defaultcollection
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = NextionUploader\\NextionUploader.csproj
-		SccProjectName1 = NextionUploader
-		SccLocalPath1 = NextionUploader
-	EndGlobalSection
+
 EndGlobal

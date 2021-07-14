@@ -1,5 +1,6 @@
 ﻿using NextionUploader.Framework;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace NextionUploader
         {
             ComPorts = new SortedObservableCollection<string, string>(i => i);
             Files = new SortedObservableCollection<string, string>(i => i);
+            ShowFileList = System.Windows.Visibility.Visible;
 
             RefreshComPorts();
             RefreshFiles();
@@ -23,7 +25,15 @@ namespace NextionUploader
             this.refreshTimer.Interval = TimeSpan.FromSeconds(0.5);
             this.refreshTimer.Tick += RefreshTimer_Tick;
             this.refreshTimer.IsEnabled = true;
+
+            UploadBaudRates = Nextion.Uploader.baudrates.ToList();
         }
+
+        public bool ResetNextionAtUpload { get; set; } = false;
+
+        public List<int> UploadBaudRates { get; set; }
+
+        public int UploadBaudRate { get; set; } = 115200;
 
         public SortedObservableCollection<string, string> ComPorts
         {
@@ -34,6 +44,18 @@ namespace NextionUploader
         public SortedObservableCollection<string, string> Files
         {
             get { return GetPropertyValue<SortedObservableCollection<string, string>>(); }
+            set { SetPropertyValue(value); }
+        }
+
+        public System.Windows.Visibility ShowFileList
+        {
+            get { return GetPropertyValue<System.Windows.Visibility>(); }
+            set { SetPropertyValue(value); }
+        }
+
+        public string PickedFile
+        {
+            get { return GetPropertyValue<string>(); }
             set { SetPropertyValue(value); }
         }
 

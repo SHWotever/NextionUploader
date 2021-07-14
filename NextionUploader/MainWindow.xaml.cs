@@ -1,9 +1,10 @@
 ﻿using NextionUploader.Nextion;
+using System;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
-using System.ComponentModel;
 
 namespace NextionUploader
 {
@@ -16,6 +17,8 @@ namespace NextionUploader
 
         private bool isUploading = false;
 
+        public Action Cancel { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -24,8 +27,17 @@ namespace NextionUploader
             Directory.SetCurrentDirectory(exeDir);
 
             Model = new MainWindowModel();
+
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length >= 2)
+            {
+                if (File.Exists(args[1]) && Path.GetExtension(args[1]).Equals(".tft", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Model.PickedFile = args[1];
+                    Model.ShowFileList = Visibility.Hidden;
+                }
+            }
             this.DataContext = Model;
-            
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -40,47 +52,87 @@ namespace NextionUploader
         private async void btnUpload_Click(object sender, RoutedEventArgs e)
         {
             btnUpload.IsEnabled = false;
+            btnCancel.IsEnabled = true;
+
             isUploading = true;
-            try
+
+            Model.MessageLog = "";
+
+            if (Model.SelectedComPort == null)
             {
-                Model.MessageLog = "";
+                System.Windows.MessageBox.Show("Please select a serial port");
+                return;
+            }
+            else if (Model.SelectedFile == null && Model.PickedFile == null)
+            {
+                System.Windows.MessageBox.Show("Please select a template");
+                return;
+            }
 
-                if (Model.SelectedComPort == null)
-                {
-                    MessageBox.Show("Please select a serial port");
-                    return;
-                }
-                else if (Model.SelectedFile == null)
-                {
-                    MessageBox.Show("Please select a template");
-                    return;
-                }
+            var t = new Thread(() =>
+            {
+                var uploader = new Uploader();
+                this.Cancel = () => uploader.Cancel();
+                uploader.Message += Uploader_Message;
+                uploader.UploadProgress += Uploader_UploadProgress;
+                uploader.Upload(Model.SelectedComPort, File.ReadAllBytes(Model.PickedFile ?? Model.SelectedFile), Model.UploadBaudRate, Model.ResetNextionAtUpload);
 
-                await Task.Run(() =>
+                Dispatcher.Invoke(() =>
                 {
-                    var uploader = new Uploader();
-                    uploader.Message += Uploader_Message;
-                    uploader.UploadProgress += Uploader_UploadProgress;
-                    uploader.Upload(Model.SelectedComPort, File.ReadAllBytes(Model.SelectedFile));
+                    Cancel = null;
+                    btnUpload.IsEnabled = true;
+                    btnCancel.IsEnabled = false;
+                    isUploading = false;
                 });
-            }
-            finally
-            {
-                btnUpload.IsEnabled = true;
-                isUploading = false;
-            }
+            });
+            t.Start();
         }
-
-     
 
         private void Uploader_Message(object sender, string e)
         {
-            Model.MessageLog += e + "\r\n";
+            Dispatcher.Invoke(() =>
+            {
+                Model.MessageLog += e + "\r\n";
+            });
         }
 
         private void Uploader_UploadProgress(object sender, double e)
         {
-            Model.UploadProgress = e;
+            Dispatcher.Invoke(() =>
+            {
+                Model.UploadProgress = e;
+            });
+        }
+
+        private void btnFileChoose_Click(object sender, RoutedEventArgs e)
+        {
+            // Create OpenFileDialog
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+
+            // Set filter for file extension and default file extension
+            dlg.DefaultExt = ".tft";
+            dlg.Filter = "TFT Files (*.tft)|*.tft";
+
+            // Display OpenFileDialog by calling ShowDialog method
+            Nullable<bool> result = dlg.ShowDialog();
+
+            // Get the selected file name and display in a TextBox
+            if (result == true)
+            {
+                Model.PickedFile = dlg.FileName;
+                Model.ShowFileList = Visibility.Collapsed;
+            }
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            var c = Cancel;
+            if (c != null)
+            {
+                var dialogResult = System.Windows.MessageBox.Show("Are you sure to want to cancel upload ?", "Cancel", MessageBoxButton.YesNo);
+                if (dialogResult == MessageBoxResult.Yes)
+                    Cancel();
+            }
         }
     }
 }
